@@ -7,11 +7,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { hashPasswordHelper, parseQueryParams } from '@/helpers/util';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 const dayjs = require('dayjs');
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly mailerService: MailerService,
+  ) {}
 
   isEmailExist = async (email: string) => {
     const isEmailExist = await this.userModel.exists({ email });
@@ -82,7 +86,7 @@ export class UsersService {
   }
 
   async handleRegister(registerDto: CreateAuthDto) {
-     const { name, email, password } = registerDto;
+    const { name, email, password } = registerDto;
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
@@ -90,19 +94,32 @@ export class UsersService {
         'Email already exists. Please use another email',
       );
     }
-     const hashPassword = await hashPasswordHelper(password);
-     const user = await this.userModel.create({
+    const hashPassword = await hashPasswordHelper(password);
+    const codeId = uuidv4();
+    const user = await this.userModel.create({
       name,
       email,
       password: hashPassword,
       isActive: false,
-      codeId: uuidv4(),
-      codeExpired: dayjs(new Date()).add(1,'minute')
+      codeId,
+      codeExpired: dayjs(new Date()).add(1, 'minute'),
+    });
+
+    this.mailerService.sendMail({
+      to: 'phanhoangphuc8991@gmail.com', // list of receivers
+      // from: 'noreply@nestjs.com', // sender address
+      subject: 'Testing Nest MailerModule ✔', // Subject line
+      text: 'welcome',
+      template: 'register.hbs', // plaintext body
+      context: {
+        // ✏️ filling curly brackets with content
+        name: user.name || user.email,
+        activationCode: codeId,
+      },
     });
 
     return {
-      _id: user._id,  
-    }
+      _id: user._id,
+    };
   }
 }
-
