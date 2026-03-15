@@ -6,7 +6,7 @@ import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { hashPasswordHelper, parseQueryParams } from '@/helpers/util';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { CreateAuthDto, CodeAuthDto } from '@/auth/dto/create-auth.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 const dayjs = require('dayjs');
 
@@ -22,8 +22,8 @@ export class UsersService {
     if (isEmailExist) return true;
     return false;
   };
-  async create(createUserDto: CreateUserDto) {
-    const { name, email, password, phone, address, image } = createUserDto;
+  async create(data: CreateUserDto) {
+    const { name, email, password, phone, address, image } = data;
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
@@ -65,14 +65,14 @@ export class UsersService {
   async findByEmail(email: string) {
     return this.userModel.findOne({ email });
   }
-  async update(updateUserDto: UpdateUserDto) {
+  async update(data: UpdateUserDto) {
     const user = await this.userModel.updateOne(
-      { _id: updateUserDto._id },
+      { _id: data._id },
       {
-        name: updateUserDto.name,
-        email: updateUserDto.email,
-        phone: updateUserDto.phone,
-        address: updateUserDto.address,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
       },
     );
     return user;
@@ -85,8 +85,8 @@ export class UsersService {
     return this.userModel.deleteOne({ _id });
   }
 
-  async handleRegister(registerDto: CreateAuthDto) {
-    const { name, email, password } = registerDto;
+  async handleRegister(data: CreateAuthDto) {
+    const { name, email, password } = data;
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
@@ -121,5 +121,27 @@ export class UsersService {
     return {
       _id: user._id,
     };
+  }
+
+  async handleVerify(data: CodeAuthDto) {
+    const user = await this.userModel.findOne({
+      _id: data._id,
+      codeId: data.code,
+    });
+    if (!user) {
+      throw new BadRequestException('Code Invalid');
+    }
+
+    const isBeforeCheck = dayjs().isBefore(user.codeExpired);
+    if (isBeforeCheck) {
+      await this.userModel.updateOne({ _id: user._id }, { isActive: true });
+      return {
+        isBeforeCheck,
+      };
+    } else {
+      throw new BadRequestException(`Code expired `);
+    }
+
+    return data;
   }
 }
