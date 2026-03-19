@@ -4,10 +4,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { hashPasswordHelper, parseQueryParams } from '@/helpers/util';
+import { generateOTP, hashPasswordHelper, parseQueryParams } from '@/helpers/util';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateAuthDto, CodeAuthDto } from '@/auth/dto/create-auth.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+
 const dayjs = require('dayjs');
 
 @Injectable()
@@ -22,6 +23,8 @@ export class UsersService {
     if (isEmailExist) return true;
     return false;
   };
+
+  
   async create(data: CreateUserDto) {
     const { name, email, password, phone, address, image } = data;
     // CHECK EMAIL
@@ -90,12 +93,12 @@ export class UsersService {
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
-      throw new BadRequestException(
-        'Email already exists. Please use another email',
-      );
+      throw new BadRequestException({
+        error: 'EMAIL_ALREADY_EXISTS',
+      });
     }
     const hashPassword = await hashPasswordHelper(password);
-    const codeId = uuidv4();
+    const codeId = generateOTP();
     const user = await this.userModel.create({
       name,
       email,
@@ -120,6 +123,7 @@ export class UsersService {
 
     return {
       _id: user._id,
+      email,
     };
   }
 
