@@ -42,6 +42,13 @@ export default class AuthController {
   }
 
 
+ @Public()
+  @Post('resend-activation')
+  async resendActivation(@Body() data) {
+    console.log('email',data);
+    return this.authService.resendActivation(data);
+  }
+
   @Public()
   @Get('mail')
   async testMail() {

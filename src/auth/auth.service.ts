@@ -36,9 +36,10 @@ export class AuthService {
   }
 
   async checkCode(codeDto: CodeAuthDto) {
-
-    
    return this.usersService.handleVerify(codeDto);
+  }
 
+   async resendActivation(data) {
+   return this.usersService.resendActivation(data);
   }
 }

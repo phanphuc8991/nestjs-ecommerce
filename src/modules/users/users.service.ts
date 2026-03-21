@@ -4,7 +4,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { generateOTP, hashPasswordHelper, parseQueryParams } from '@/helpers/util';
+import {
+  generateOTP,
+  hashPasswordHelper,
+  parseQueryParams,
+} from '@/helpers/util';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateAuthDto, CodeAuthDto } from '@/auth/dto/create-auth.dto';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -24,7 +28,6 @@ export class UsersService {
     return false;
   };
 
-  
   async create(data: CreateUserDto) {
     const { name, email, password, phone, address, image } = data;
     // CHECK EMAIL
@@ -109,13 +112,12 @@ export class UsersService {
     });
 
     this.mailerService.sendMail({
-      to: 'phanhoangphuc8991@gmail.com', // list of receivers
+      to: 'phanhoangphuc8991@gmail.com', 
       // from: 'noreply@nestjs.com', // sender address
-      subject: 'Testing Nest MailerModule ✔', // Subject line
+      subject: 'Testing Nest MailerModule ✔', 
       text: 'welcome',
-      template: 'register.hbs', // plaintext body
+      template: 'register.hbs',
       context: {
-        // ✏️ filling curly brackets with content
         name: user.name || user.email,
         activationCode: codeId,
       },
@@ -145,7 +147,31 @@ export class UsersService {
     } else {
       throw new BadRequestException(`Code expired `);
     }
+  }
 
-    return data;
+  async resendActivation({email}) {
+    // check email
+    const user = await this.userModel.findOne({
+      email,
+    });
+    const codeId = generateOTP();
+   
+    // update user
+    await user.updateOne({
+      codeId,
+      codeExpired: dayjs(new Date()).add(1, 'minute'),
+    });
+    this.mailerService.sendMail({
+      to: 'phanhoangphuc8991@gmail.com', 
+      // from: 'noreply@nestjs.com', // sender address
+      subject: 'Testing Nest MailerModule ✔',
+      text: 'welcome',
+      template: 'register.hbs', 
+      context: {
+        name: user.name || user.email,
+        activationCode: codeId,
+      },
+    });
+    return { _id: user._id };
   }
 }
