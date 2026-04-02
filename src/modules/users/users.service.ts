@@ -9,7 +9,6 @@ import {
   hashPasswordHelper,
   parseQueryParams,
 } from '@/helpers/util';
-import { v4 as uuidv4 } from 'uuid';
 import { CreateAuthDto, CodeAuthDto } from '@/auth/dto/create-auth.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 
@@ -173,5 +172,32 @@ export class UsersService {
       },
     });
     return { _id: user._id };
+  }
+
+  async findOrCreateGoogleUser(payload: { email: string; name: string; image: string; providerId: string }) {
+    const { email, name, image, providerId } = payload;
+    let user = await this.userModel.findOne({ email });
+
+    if (user) {
+      const hasGoogleLink = user.socialLinks?.some(link => link.provider === 'google');
+      if (!hasGoogleLink) {
+        user.socialLinks.push({ provider: 'google', providerId });
+        if (!user.image) user.image = image;
+        await user.save();
+      }
+      return user;
+    }
+
+
+    return await this.userModel.create({
+      email,
+      name,
+      image,
+      password: null,
+      isActive: true,
+      accountType: 'GOOGLE',
+      socialLinks: [{ provider: 'google', providerId }],
+      role: 'USER',
+    });
   }
 }

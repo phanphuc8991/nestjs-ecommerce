@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
-@Schema({timestamps: true })
+@Schema({ timestamps: true })
 export class User {
   @Prop()
   name: string;
@@ -14,18 +14,32 @@ export class User {
   @Prop()
   password: string;
 
+  @Prop({
+    type: [
+      {
+        provider: String,
+        providerId: String,
+      },
+    ],
+    _id: false,
+  })
+  socialLinks: Array<{ provider: string; providerId: string }>;
+
   @Prop()
   phone: string;
   @Prop()
   address: string;
   @Prop()
   image: string;
-    @Prop({ default: 'USERS' })
+  @Prop({ default: 'USERS' })
   role: string;
 
-  @Prop({ default: 'LOCAL' })
+  @Prop({
+    type: String,
+    enum: ['LOCAL', 'GOOGLE', 'FACEBOOK'],
+    default: 'LOCAL',
+  })
   accountType: string;
-
   @Prop({ default: false })
   isActive: boolean;
 

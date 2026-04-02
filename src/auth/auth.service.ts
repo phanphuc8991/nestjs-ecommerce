@@ -1,14 +1,21 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { comparePasswordHelper } from '@/helpers/util';
 import { JwtService } from '@nestjs/jwt';
-import { CreateAuthDto,CodeAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, CodeAuthDto } from './dto/create-auth.dto';
+import { ConfigService } from '@nestjs/config';
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -29,6 +36,34 @@ export class AuthService {
     };
   }
 
+  async loginGoogle({idToken}: {idToken: string}) {
+
+    const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    console.log('client',client);
+    console.log('idToken',idToken);
+    try {
+      // 1. Verify token với Google
+      const ticket = await client.verifyIdToken({
+        idToken:idToken ,
+        audience: googleClientId,
+      });
+      console.log('ticket',ticket);
+      const payload = ticket.getPayload();
+      console.log('payload',payload);
+      if (!payload) throw new BadRequestException('Invalid Google Token');
+      const user = await this.usersService.findOrCreateGoogleUser({
+        email: payload.email,
+        name: payload.name,
+        image: payload.picture,
+        providerId: payload.sub,
+      });
+      return this.login(user);
+    } catch (error) {
+      console.log('error',error);
+    }
+  }
+
   async handleRegister(registerDto: CreateAuthDto) {
     // check email
     return this.usersService.handleRegister(registerDto);
@@ -36,10 +71,10 @@ export class AuthService {
   }
 
   async checkCode(codeDto: CodeAuthDto) {
-   return this.usersService.handleVerify(codeDto);
+    return this.usersService.handleVerify(codeDto);
   }
 
-   async resendActivation(data) {
-   return this.usersService.resendActivation(data);
+  async resendActivation(data) {
+    return this.usersService.resendActivation(data);
   }
 }

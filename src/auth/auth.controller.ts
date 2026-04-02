@@ -30,19 +30,24 @@ export default class AuthController {
   }
 
   @Public()
+  @Post('google-login')
+  async googleLogin(@Request() req) {
+    return this.authService.loginGoogle(req.body);
+  }
+
+  @Public()
   @Post('register')
   async register(@Body() registerDto: CreateAuthDto) {
     return this.authService.handleRegister(registerDto);
   }
 
- @Public()
+  @Public()
   @Post('check-code')
   async checkCode(@Body() codeDto: CodeAuthDto) {
     return this.authService.checkCode(codeDto);
   }
 
-
- @Public()
+  @Public()
   @Post('resend-activation')
   async resendActivation(@Body() data) {
     return this.authService.resendActivation(data);
@@ -56,12 +61,13 @@ export default class AuthController {
         to: 'phanhoangphuc8991@gmail.com', // list of receivers
         // from: 'noreply@nestjs.com', // sender address
         subject: 'Testing Nest MailerModule ✔', // Subject line
-          text: 'welcome', 
+        text: 'welcome',
         template: 'register.hbs', // plaintext body
-       context: { // ✏️ filling curly brackets with content
-        name:"phuc",
-        activationCode: 123456789,
-      }, 
+        context: {
+          // ✏️ filling curly brackets with content
+          name: 'phuc',
+          activationCode: 123456789,
+        },
       })
       .then(() => {})
       .catch(() => {});
