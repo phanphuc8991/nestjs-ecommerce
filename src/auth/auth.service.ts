@@ -37,11 +37,8 @@ export class AuthService {
   }
 
   async loginGoogle({idToken}: {idToken: string}) {
-
     const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-    console.log('client',client);
-    console.log('idToken',idToken);
     try {
       // 1. Verify token với Google
       const ticket = await client.verifyIdToken({
@@ -54,8 +51,7 @@ export class AuthService {
       if (!payload) throw new BadRequestException('Invalid Google Token');
       const user = await this.usersService.findOrCreateGoogleUser({
         email: payload.email,
-        name: payload.name,
-        image: payload.picture,
+        avatarUrl: payload.picture,
         providerId: payload.sub,
       });
       return this.login(user);

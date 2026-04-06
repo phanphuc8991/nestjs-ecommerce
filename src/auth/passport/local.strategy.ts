@@ -21,7 +21,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       });
     }
 
-    if (!user.isActive) {
+    if (user.status === 'inactive') {
       throw new ForbiddenException({
         error: 'ACCOUNT_INACTIVE',
       });
