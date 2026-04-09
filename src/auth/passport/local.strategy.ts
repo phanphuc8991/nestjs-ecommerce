@@ -11,8 +11,8 @@ import { AuthService } from '@/auth/auth.service';
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
     super({
-      usernameField: 'email', 
-      passwordField: 'password',  
+      usernameField: 'email',
+      passwordField: 'password',
     });
   }
 
@@ -20,13 +20,16 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     const user = await this.authService.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException({
-        error: 'UNAUTHORIZED',
+        message: 'The email or password you entered is incorrect.',
+        type: 'UNAUTHORIZED',
       });
     }
-
+    console.log('user', user);
     if (user.status === 'inactive') {
       throw new ForbiddenException({
-        error: 'ACCOUNT_INACTIVE',
+        message:
+          'Your account is inactive. Please activate your account or contact support.',
+        type: 'ACCOUNT_INACTIVE',
       });
     }
     return user;

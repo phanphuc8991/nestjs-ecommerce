@@ -114,7 +114,8 @@ export class UsersService {
     const isExist = await this.isEmailExist(email);
     if (isExist) {
       throw new BadRequestException({
-        error: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email already exists. Please use another email',
+        type: 'EMAIL_ALREADY_EXISTS',
       });
     }
     const hashPassword = await hashPasswordHelper(password);
