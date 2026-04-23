@@ -24,7 +24,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         type: 'UNAUTHORIZED',
       });
     }
-    console.log('user', user);
     if (user.status === 'inactive') {
       throw new ForbiddenException({
         message:

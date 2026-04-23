@@ -61,9 +61,7 @@ export class AuthService {
   }
 
   async handleRegister(registerDto: CreateAuthDto) {
-    // check email
     return this.usersService.handleRegister(registerDto);
-    // hash password
   }
 
   async checkCode(codeDto: CodeAuthDto) {

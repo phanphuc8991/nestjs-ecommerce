@@ -113,6 +113,7 @@ export class UsersService {
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
+      console.log('email is exist');
       throw new BadRequestException({
         message: 'Email already exists. Please use another email',
         type: 'EMAIL_ALREADY_EXISTS',
@@ -127,9 +128,8 @@ export class UsersService {
       password: hashPassword,
       status: 'inactive',
       codeId,
-      codeExpired: dayjs(new Date()).add(1, 'minute'),
+      codeExpired: dayjs().add(1, 'minute'),
     });
-
     this.mailerService.sendMail({
       to: 'phanhoangphuc8991@gmail.com',
       // from: 'noreply@nestjs.com', // sender address
