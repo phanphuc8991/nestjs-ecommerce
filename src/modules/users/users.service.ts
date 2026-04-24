@@ -47,9 +47,10 @@ export class UsersService {
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
-      throw new BadRequestException(
-        'Email already exists. Please use another email',
-      );
+      throw new BadRequestException({
+        type: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email already exists. Please use another email',
+      });
     }
     const hashPassword = await hashPasswordHelper(password);
     const user = await this.userModel.create({
@@ -113,10 +114,9 @@ export class UsersService {
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
-      console.log('email is exist');
       throw new BadRequestException({
-        message: 'Email already exists. Please use another email',
         type: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email already exists. Please use another email',
       });
     }
     const hashPassword = await hashPasswordHelper(password);
