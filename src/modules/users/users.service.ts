@@ -247,7 +247,6 @@ export class UsersService {
     file: Express.Multer.File,
     folder: string = 'users',
   ): Promise<UploadApiResponse> {
-    // Kiểm tra file buffer
     if (!file?.buffer || file.buffer.length === 0) {
       throw new Error('File buffer is empty or invalid');
     }
