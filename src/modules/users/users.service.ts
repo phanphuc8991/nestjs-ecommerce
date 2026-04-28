@@ -191,8 +191,13 @@ export class UsersService {
     const user = await this.userModel.findOne({
       email,
     });
+    if (!user) {
+      throw new BadRequestException({
+        type: 'INVALID_EMAIL',
+        message: 'Unable to send code. Please try again.',
+      });
+    }
     const codeId = generateOTP();
-
     // update user
     await user.updateOne({
       codeId,
