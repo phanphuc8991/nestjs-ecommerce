@@ -71,4 +71,9 @@ export class AuthService {
   async resendActivation(data) {
     return this.usersService.resendActivation(data);
   }
+
+   async forgotPassword(data) {
+    return this.usersService.forgotPassword(data);
+  }
 }
+

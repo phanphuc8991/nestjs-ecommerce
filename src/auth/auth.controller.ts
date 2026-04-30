@@ -53,6 +53,13 @@ export default class AuthController {
     return this.authService.resendActivation(data);
   }
 
+   @Public()
+  @Post('forgot-password')
+  async forgotPassword(@Body() data) {
+    return this.authService.forgotPassword(data);
+  }
+
+
   @Public()
   @Get('mail')
   async testMail() {

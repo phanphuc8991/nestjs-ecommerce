@@ -216,6 +216,44 @@ export class UsersService {
     });
     return { _id: user._id };
   }
+  async forgotPassword(data) {
+    const user = await this.userModel.findById(data._id);
+    if (!user) {
+      throw new BadRequestException({
+        type: 'INVALID_ID',
+        message:
+          'Invalid verification link. Please check your email and try again.',
+      });
+    }
+
+    // Check code
+    if (user.codeId !== data.code) {
+      throw new BadRequestException({
+        type: 'INVALID_CODE',
+        message: 'The verification code is incorrect. Please try again.',
+      });
+    }
+
+    // Check expired
+    const isCodeValid = dayjs().isBefore(user.codeExpired);
+
+    if (!isCodeValid) {
+      throw new BadRequestException({
+        type: 'CODE_EXPIRED',
+        message: 'The verification code has expired. Please request a new one.',
+      });
+    }
+    const hashPassword = await hashPasswordHelper(data.newPassword);
+    // Success
+    await this.userModel.updateOne(
+      { _id: user._id },
+      { status: 'active', password: hashPassword },
+    );
+
+    return {
+      success: true,
+    };
+  }
 
   async findOrCreateGoogleUser(payload: {
     email: string;

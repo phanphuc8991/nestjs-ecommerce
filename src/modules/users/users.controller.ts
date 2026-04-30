@@ -62,7 +62,7 @@ export class UsersController {
     const data = { ...createUserDto, avatarUrl, avatarPublicId };
     return this.usersService.create(data);
   }
-
+  
   @Get()
   // `query` → validated DTO (pagination & basic fields)
   // `queryRaw` → original query params for AQP parsing (filters, sort, etc.)
