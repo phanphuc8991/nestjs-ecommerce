@@ -16,6 +16,12 @@ import {
   UploadApiResponse,
   UploadApiErrorResponse,
 } from 'cloudinary';
+import {
+  CodeExpiredException,
+  EmailExistsException,
+  InvalidCodeException,
+  InvalidLinkException,
+} from '@/core/auth.exceptions';
 
 const dayjs = require('dayjs');
 
@@ -47,10 +53,7 @@ export class UsersService {
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
-      throw new BadRequestException({
-        type: 'EMAIL_ALREADY_EXISTS',
-        message: 'Email already exists. Please use another email',
-      });
+      throw new EmailExistsException();
     }
     const hashPassword = await hashPasswordHelper(password);
     const user = await this.userModel.create({
@@ -114,10 +117,7 @@ export class UsersService {
     // CHECK EMAIL
     const isExist = await this.isEmailExist(email);
     if (isExist) {
-      throw new BadRequestException({
-        type: 'EMAIL_ALREADY_EXISTS',
-        message: 'Email already exists. Please use another email',
-      });
+      throw new EmailExistsException();
     }
     const hashPassword = await hashPasswordHelper(password);
     const codeId = generateOTP();
@@ -153,29 +153,19 @@ export class UsersService {
     const user = await this.userModel.findById(data._id);
 
     if (!user) {
-      throw new BadRequestException({
-        type: 'INVALID_ID',
-        message:
-          'Invalid verification link. Please check your email and try again.',
-      });
+      throw new InvalidLinkException();
     }
 
     // Check code
     if (user.codeId !== data.code) {
-      throw new BadRequestException({
-        type: 'INVALID_CODE',
-        message: 'The verification code is incorrect. Please try again.',
-      });
+      throw new InvalidCodeException();
     }
 
     // Check expired
     const isCodeValid = dayjs().isBefore(user.codeExpired);
 
     if (!isCodeValid) {
-      throw new BadRequestException({
-        type: 'CODE_EXPIRED',
-        message: 'The verification code has expired. Please request a new one.',
-      });
+      throw new CodeExpiredException();
     }
 
     // Success
@@ -219,29 +209,19 @@ export class UsersService {
   async forgotPassword(data) {
     const user = await this.userModel.findById(data._id);
     if (!user) {
-      throw new BadRequestException({
-        type: 'INVALID_ID',
-        message:
-          'Invalid verification link. Please check your email and try again.',
-      });
+      throw new InvalidLinkException();
     }
 
     // Check code
     if (user.codeId !== data.code) {
-      throw new BadRequestException({
-        type: 'INVALID_CODE',
-        message: 'The verification code is incorrect. Please try again.',
-      });
+      throw new InvalidCodeException();
     }
 
     // Check expired
     const isCodeValid = dayjs().isBefore(user.codeExpired);
 
     if (!isCodeValid) {
-      throw new BadRequestException({
-        type: 'CODE_EXPIRED',
-        message: 'The verification code has expired. Please request a new one.',
-      });
+      throw new CodeExpiredException();
     }
     const hashPassword = await hashPasswordHelper(data.newPassword);
     // Success

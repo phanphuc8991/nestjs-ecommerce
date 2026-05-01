@@ -14,6 +14,7 @@ export interface Response<T> {
     statusCode: number;
     message?: string;
     data: any;
+    success: boolean;
 }
 
 @Injectable()
@@ -29,6 +30,7 @@ export class TransformInterceptor<T>
             .handle()
             .pipe(
                 map((data) => ({
+                    success: true,
                     statusCode: context.switchToHttp().getResponse().statusCode,
                     message: this.reflector
                         .get<string>(RESPONSE_MESSAGE, context.getHandler()) || '',

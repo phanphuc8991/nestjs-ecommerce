@@ -1,11 +1,8 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
-import {
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
+import { AccountInactiveException, InvalidCredentialsException } from '@/core/auth.exceptions';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -19,17 +16,10 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   async validate(email: string, password: string): Promise<any> {
     const user = await this.authService.validateUser(email, password);
     if (!user) {
-      throw new UnauthorizedException({
-        message: 'The email or password you entered is incorrect.',
-        type: 'UNAUTHORIZED',
-      });
+      throw new InvalidCredentialsException();
     }
     if (user.status === 'inactive') {
-      throw new ForbiddenException({
-        message:
-          'Your account is inactive. Please activate your account or contact support.',
-        type: 'ACCOUNT_INACTIVE',
-      });
+      throw new AccountInactiveException();
     }
     return user;
   }
